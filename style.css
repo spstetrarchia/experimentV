@@ -1,0 +1,141 @@
+html body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-color: black;
+  color: white;
+  font-family: sans-serif;
+}
+
+@font-face {
+  font-family: science_gothic;
+  src: url(static/fonts/science_gothic.ttf);
+}
+
+@keyframes textflicker {
+  from {
+    text-shadow:
+      1px 0 0 #ea36af,
+      -2px 0 0 #75fa69;
+  }
+  to {
+    text-shadow:
+      2px 0.5px 2px #ea36af,
+      -1px -0.5px 2px #75fa69;
+  }
+}
+
+button {
+  width: 10vh;
+  aspect-ratio: 16/9;
+  font-family: science_gothic;
+  font-size: 3vh;
+  color: rgb(0, 255, 0);
+  background-color: rgb(20, 20, 20);
+  border: rgb(0, 255, 0) 1px solid;
+}
+
+.preface {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.8s ease;
+}
+
+.preface-text {
+  font-family: science_gothic, sans-serif;
+  font-style: italic;
+  font-size: calc(14px + 1vw);
+  color: white;
+  letter-spacing: 0.2em;
+}
+
+#hero {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  animation-iteration-count: infinite;
+  align-items: center;
+  background-color: rgb(19, 19, 19);
+  will-change: filter;
+  filter: blur(100px);
+  text-shadow:
+    0.06rem 0 0.06rem #ea36af,
+    -0.125rem 0 0.06rem #75fa69;
+  letter-spacing: 0.5em;
+  animation-duration: 0.01s;
+  animation-name: textflicker;
+  animation-direction: alternate;
+}
+
+@keyframes blackouttext {
+  0% {
+    color: white;
+  }
+  48% {
+    color: white;
+  }
+  50% {
+    color: rgb(19, 19, 19);
+  }
+  52% {
+    color: white;
+  }
+  98% {
+    color: white;
+  }
+  100% {
+    color: rgb(19, 19, 19);
+  }
+}
+
+.t {
+  font-size: calc(28px + 5vw);
+  font-family: science_gothic;
+  font-style: italic;
+  color: white;
+  animation-duration: 3s; /* full cycle = 4s */
+  animation-name: blackouttext;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-delay: 2s; /* delay before it starts */
+}
+
+.v {
+  font-size: calc(28px + 10vw);
+}
+
+.hero_inner {
+  text-align: center;
+}
+
+::cue {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px;
+  border-radius: 6px;
+}
+
+#renderCanvas {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: 4px inset black solid;
+  opacity: 0;
+  display: none;
+}
+
+#skip {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999;
+  border: none;
+  cursor: pointer;
+}
