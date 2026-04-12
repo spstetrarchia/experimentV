@@ -121,16 +121,6 @@ button {
   border-radius: 6px;
 }
 
-#renderCanvas {
-  width: 100%;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  border: 4px inset black solid;
-  opacity: 0;
-  display: none;
-}
-
 #skip {
   position: fixed;
   top: 20px;
