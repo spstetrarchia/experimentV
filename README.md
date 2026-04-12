@@ -8,7 +8,7 @@ An unknown creature escapes from a nation laboratory. We've seen this before. Bu
 #### Credits (see credits.md also)
 
 Models by [Shadow](https://shadow.developer.li)<br>
-Code, Music and sound effects by [Aarav Saini](https://aaravsaini.developer.li)<br>
+Code, Music and Sound Effects by [Aarav Saini/GalacticNuclei](https://aaravsaini.developer.li)<br>
 Main Character by SlimeTricks<br>
 
 ---
