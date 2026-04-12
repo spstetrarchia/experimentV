@@ -128,4 +128,5 @@ button {
   z-index: 999;
   border: none;
   cursor: pointer;
+  display: none;
 }
