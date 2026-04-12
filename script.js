@@ -1,24 +1,3 @@
-const canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(canvas, true);
-
-let isCutsceneActive = false;
-let cutsceneToken = 0;
-
-let skipBtn;
-let play_button;
-
-engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-
-window.addEventListener("resize", () => {
-  engine.resize();
-});
-
-engine.runRenderLoop(() => {
-  if (engine.scenes.length > 0) {
-    engine.scenes[0].render();
-  }
-});
-
 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
 function delay(ms) {
@@ -81,18 +60,20 @@ class SubtitleEngine {
     this.active = true;
     this.startTime = startTime;
     this.index = 0;
+    this.currentCue = null;
     this._loop();
   }
 
   stop() {
     this.active = false;
-    gsap.to(this.el, { opacity: 0, duration: 0.2 });
+    this.currentCue = null;
+    this.index = 0;
+    this.el.textContent = "";
+    gsap.killTweensOf(this.el);
+    gsap.set(this.el, { opacity: 0 });
   }
 
   _getTime() {
-    if (this.ctx.getOutputTimestamp) {
-      return this.ctx.getOutputTimestamp().contextTime - this.startTime;
-    }
     return this.ctx.currentTime - this.startTime;
   }
 
@@ -100,9 +81,12 @@ class SubtitleEngine {
     if (!this.active) return;
 
     const t = this._getTime();
-    const cue = this.cues[this.index];
 
-    if (cue && t > cue.end) this.index++;
+    while (this.cues[this.index] && t > this.cues[this.index].end) {
+      this.index++;
+    }
+
+    const cue = this.cues[this.index];
 
     if (cue && t >= cue.start && t <= cue.end) {
       if (this.currentCue !== cue) {
@@ -118,12 +102,16 @@ class SubtitleEngine {
   }
 
   _showCue(text) {
+    if (this.el.textContent === text) return;
+
     this.el.textContent = text;
+
     gsap.killTweensOf(this.el);
+
     gsap.fromTo(
       this.el,
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.1 },
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.15 },
     );
   }
 
@@ -157,6 +145,7 @@ class AudioEngine {
       } catch {}
 
       if (instance.subtitles) instance.subtitles.stop();
+      if (instance._cancel) instance._cancel();
     });
 
     this.instances = {};
@@ -210,12 +199,14 @@ class AudioEngine {
     source.connect(gain);
     gain.connect(bus);
 
-    const startTime = this.ctx.currentTime;
+    const startTime = this.ctx.currentTime + (options.offset || 0);
+
     const subtitles = await this._attachSubtitles(source, options, startTime);
 
-    source.start();
+    source.start(startTime);
 
     const instance = { source, gain, subtitles };
+
     this._registerInstance(options.id, instance);
 
     return instance;
@@ -225,11 +216,22 @@ class AudioEngine {
     const instance = await this.play(name, options);
 
     return new Promise((resolve) => {
-      const original = instance.source.onended;
-      instance.source.onended = () => {
-        if (original) original();
+      let resolved = false;
+
+      const done = () => {
+        if (resolved) return;
+        resolved = true;
         resolve();
       };
+
+      const original = instance.source.onended;
+
+      instance.source.onended = () => {
+        if (original) original();
+        done();
+      };
+
+      instance._cancel = done;
     });
   }
 
@@ -252,6 +254,7 @@ class AudioEngine {
       instance.gain.gain.linearRampToValueAtTime(0, now + duration);
 
       const original = instance.source.onended;
+
       instance.source.onended = () => {
         if (original) original();
         resolve();
@@ -264,6 +267,11 @@ class AudioEngine {
 
 const audio = new AudioEngine();
 let bgInstance = null;
+
+let skipBtn;
+let play_button;
+let isCutsceneActive = false;
+let cutsceneToken = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
   skipBtn = document.getElementById("skip");
@@ -281,9 +289,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     gsap.killTweensOf("*");
 
     skipBtn.style.display = "none";
-
-    show("renderCanvas");
-    createSceneTest();
   });
 
   const preface = document.getElementById("preface");
@@ -353,50 +358,6 @@ function show(id, display = "block") {
   );
 }
 
-function createSceneTest() {
-  var scene = new BABYLON.Scene(engine);
-
-  var camera = new BABYLON.FreeCamera(
-    "camera1",
-    new BABYLON.Vector3(0, 5, -10),
-    scene,
-  );
-
-  camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(canvas, true);
-
-  var light = new BABYLON.HemisphericLight(
-    "light",
-    new BABYLON.Vector3(0, 1, 0),
-    scene,
-  );
-
-  light.intensity = 0.7;
-
-  var ground = BABYLON.MeshBuilder.CreateGround(
-    "ground",
-    { width: 6, height: 6 },
-    scene,
-  );
-
-  let groundMaterial = new BABYLON.StandardMaterial("Ground Material", scene);
-
-  let groundTexture = new BABYLON.Texture(
-    "https://assets.babylonjs.com/environments/ground.jpg",
-    scene,
-  );
-
-  groundMaterial.diffuseTexture = groundTexture;
-  ground.material = groundMaterial;
-
-  BABYLON.ImportMeshAsync(
-    Assets.meshes.Yeti.rootUrl + Assets.meshes.Yeti.filename,
-    scene,
-  ).then(function ({ meshes }) {
-    meshes[0].scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
-  });
-}
-
 async function start() {
   isCutsceneActive = true;
 
@@ -440,6 +401,7 @@ async function start() {
   if (token !== cutsceneToken) return;
 
   skipBtn.style.display = "none";
+
   show("renderCanvas");
   createSceneTest();
 
