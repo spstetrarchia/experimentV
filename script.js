@@ -20,7 +20,7 @@ class SubtitleEngine {
       transform: "translateX(-50%)",
       padding: "10px 20px",
       background: "rgba(21,21,21,0.6)",
-      color: "#fff",
+      color: "#ffe100",
       fontFamily: "monospace",
       fontSize: "18px",
       borderRadius: "6px",
@@ -29,6 +29,8 @@ class SubtitleEngine {
       textAlign: "center",
       minWidth: "200px",
       opacity: "0",
+      textShadow: "2px 2px black",
+      fontStyle: "italic"
     });
 
     document.body.appendChild(this.el);
